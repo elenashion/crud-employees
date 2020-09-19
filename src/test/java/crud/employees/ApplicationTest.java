@@ -27,7 +27,7 @@ public class ApplicationTest {
     private EmployeeRepository employeeRepository;
     @Autowired
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper = new ObjectMapper().registerModule(new JodaModule());
+    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JodaModule());
 
     @Test
     @Transactional
@@ -41,7 +41,7 @@ public class ApplicationTest {
                 .param("id", "1"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        Employee anotherEmployee = objectMapper.readValue(result, Employee.class);
+        Employee anotherEmployee = mapper.readValue(result, Employee.class);
         assertEquals(employee, anotherEmployee);
 
         mockMvc.perform(get("/getEmployeeById")
@@ -55,7 +55,7 @@ public class ApplicationTest {
                 .param("limit", "20"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        Employee[] employees = objectMapper.readValue(resultArray, Employee[].class);
+        Employee[] employees = mapper.readValue(resultArray, Employee[].class);
         assertEquals(employeeCount, employees.length);
         assertEquals(employees[0], employee);
     }

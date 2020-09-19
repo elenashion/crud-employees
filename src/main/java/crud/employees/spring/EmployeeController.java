@@ -26,8 +26,8 @@ public class EmployeeController {
         this.employeeRepository = employeeRepository;
     }
 
-    @GetMapping("/getNotDeletedEmployees")
-    public ResponseEntity getNotDeletedEmployees(@RequestParam Integer page, @RequestParam Integer limit) {
+    @GetMapping(value = "/getNotDeletedEmployees")
+    public ResponseEntity<String> getNotDeletedEmployees(@RequestParam Integer page, @RequestParam Integer limit) {
         try {
             // We need page - 1 because in front we usually starts from first page, but repository starts from zero page
             List<Employee> result = employeeRepository.
@@ -39,8 +39,8 @@ public class EmployeeController {
 
     }
 
-    @GetMapping("/getEmployeeById")
-    public ResponseEntity getEmployeeById(@RequestParam Integer id) {
+    @GetMapping(value = "/getEmployeeById")
+    public ResponseEntity<String> getEmployeeById(@RequestParam Integer id) {
         return requestWithIdParameter(id, employee -> {
             try {
                 return new ResponseEntity<>(mapper.writeValueAsString(employee), HttpStatus.OK);
@@ -50,41 +50,33 @@ public class EmployeeController {
         });
     }
 
-    @PostMapping("/updateEmployeeById")
-    public ResponseEntity updateEmployeeById(@RequestParam Integer id, @RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName,
+    @PostMapping(value = "/updateEmployeeById")
+    public ResponseEntity<String> updateEmployeeById(@RequestParam Integer id, @RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName,
                                              @RequestParam(required = false) String middleName, @RequestParam(required = false) Instant dateOfBirth,
                                              @RequestParam(required = false) Instant dateAdded, @RequestParam(required = false) Integer accountNumber,
                                              @RequestParam(required = false) Boolean deleted) {
         return requestWithIdParameter(id, employee -> {
-            try {
-                boolean somethingChanged = employee.update(firstName, lastName, middleName, dateOfBirth, dateAdded, accountNumber, deleted);
-                if (somethingChanged)
-                    employeeRepository.save(employee);
+            boolean somethingChanged = employee.update(firstName, lastName, middleName, dateOfBirth, dateAdded, accountNumber, deleted);
+            if (somethingChanged)
+                employeeRepository.save(employee);
 
-                return new ResponseEntity<>(HttpStatus.OK);
-            } catch (Exception e) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
+            return new ResponseEntity<>(HttpStatus.OK);
         });
     }
 
-    @PostMapping("/deleteEmployeeById")
-    public ResponseEntity deleteEmployeeById(@RequestParam Integer id) {
+    @PostMapping(value = "/deleteEmployeeById")
+    public ResponseEntity<String> deleteEmployeeById(@RequestParam Integer id) {
         return requestWithIdParameter(id, employee -> {
-            try {
-                if (!employee.isDeleted()) {
-                    employee.update(null, null, null, null, null, null, true);
-                    employeeRepository.save(employee);
-                }
-                return new ResponseEntity<>(HttpStatus.OK);
-            } catch (Exception e) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (!employee.isDeleted()) {
+                employee.update(null, null, null, null, null, null, true);
+                employeeRepository.save(employee);
             }
+            return new ResponseEntity<>(HttpStatus.OK);
         });
     }
 
-    @PostMapping("/createEmployee")
-    public ResponseEntity createEmployee(@RequestParam String firstName, @RequestParam String lastName, @RequestParam String middleName,
+    @PostMapping(value = "/createEmployee")
+    public ResponseEntity<String> createEmployee(@RequestParam String firstName, @RequestParam String lastName, @RequestParam String middleName,
                                          @RequestParam String dateOfBirth, @RequestParam Integer accountNumber, @RequestParam(required = false) Boolean deleted) {
         try {
             Instant now = Instant.now();
@@ -98,10 +90,14 @@ public class EmployeeController {
         }
     }
 
-    private ResponseEntity requestWithIdParameter(Integer id, Function<Employee, ResponseEntity> function) {
-        Employee employee = employeeRepository.findById(id).orElse(null);
-        if (employee == null)
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        return function.apply(employee);
+    private ResponseEntity<String> requestWithIdParameter(Integer id, Function<Employee, ResponseEntity<String>> function) {
+        try {
+            Employee employee = employeeRepository.findById(id).orElse(null);
+            if (employee == null)
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return function.apply(employee);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }
