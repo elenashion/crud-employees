@@ -1,4 +1,2 @@
-FROM adoptopenjdk/openjdk1.8.0_261:ubi
-RUN mkdir /opt/app
-COPY crud-employees.jar /opt/app
-CMD ["java", "-jar", "/opt/app/crud-employees.jar"]
+FROM openjdk:8u212-jre-alpine3.9
+CMD ["java", "-jar", "C:\Users\79516\crud-employees\crud-employees.jar"]
