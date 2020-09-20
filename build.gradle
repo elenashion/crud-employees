@@ -1,4 +1,7 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.3.3.RELEASE'
+}
 
 repositories {
     mavenCentral()
@@ -20,9 +23,6 @@ dependencies {
 
 }
 
-/*jar {
-    manifest {
-        attributes('Main-Class': 'Application.java')
-    }
-    from configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-}*/
+bootJar {
+    mainClassName = 'crud.employees.Application'
+}
